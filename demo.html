@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN" data-ldxp-demo="true">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>链动小铺消费助手 - 本地演示</title>
+  <style>
+    * { box-sizing: border-box; letter-spacing: 0; }
+    body {
+      margin: 0;
+      color: #25312e;
+      font-family: "Microsoft YaHei UI", system-ui, sans-serif;
+      background: #f3f5f4;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      height: 64px;
+      padding: 0 7vw;
+      color: #fff;
+      background: #202a28;
+    }
+    header strong { font-size: 18px; }
+    header nav { display: flex; margin-left: 48px; gap: 28px; color: #c9d0ce; font-size: 13px; }
+    main { width: min(1060px, calc(100% - 40px)); margin: 38px auto; }
+    h1 { margin: 0 0 22px; font-size: 24px; }
+    .tabs { display: flex; margin-bottom: 16px; gap: 24px; color: #66716d; }
+    .tabs b { color: #087a6d; border-bottom: 2px solid #087a6d; padding-bottom: 8px; }
+    .table-shell { overflow: hidden; background: #fff; border: 1px solid #dfe5e2; border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { height: 44px; color: #66716d; text-align: left; background: #f6f8f7; }
+    th, td { padding: 10px 14px; border-bottom: 1px solid #edf0ef; }
+    td:nth-child(3), td:nth-child(4), th:nth-child(3), th:nth-child(4) { text-align: center; }
+    .goods-name { max-width: 330px; overflow: hidden; color: #34423e; text-overflow: ellipsis; white-space: nowrap; }
+    .create-time, .quantity { margin-top: 4px; color: #919a97; font-size: 10px; }
+    .total_amount { color: #1f6f63; font-weight: 700; }
+    .arco-tag { display: inline-block; padding: 2px 7px; color: #08735e; background: #e3f3ef; border-radius: 4px; }
+    .pagination { display: flex; justify-content: flex-end; align-items: center; padding: 16px; gap: 6px; }
+    .arco-pagination-item { display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 8px; color: #5f6b67; border: 1px solid #dce3df; border-radius: 4px; cursor: pointer; }
+    .arco-pagination-item-active { color: #fff; background: #087a6d; border-color: #087a6d; }
+    .arco-pagination-item-disabled { cursor: default; opacity: .4; }
+  </style>
+</head>
+<body>
+  <header><strong>示例订单页</strong><nav><span>网站首页</span><span>订单查询</span><span>常见问题</span></nav></header>
+  <main>
+    <h1>订单列表</h1>
+    <div class="tabs"><b>全部</b><span>待付款</span><span>已支付</span><span>已退款</span></div>
+    <div class="table-shell">
+      <table class="arco-table-element">
+        <thead><tr><th>商品名</th><th>订单号</th><th>金额</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <ul class="pagination arco-pagination-list"></ul>
+    </div>
+  </main>
+
+  <script>
+    const demoOrders = [
+      ["开发者工具基础套餐", "DEMO-20260810-001", "1.25", "1", "已付款", "2026-08-10 09:39:37"],
+      ["云端协作月度权益", "DEMO-20260810-002", "12.57", "1", "已付款", "2026-08-10 08:35:08"],
+      ["AI 写作体验包", "DEMO-20260810-003", "13.91", "1", "已付款", "2026-08-10 07:41:25"],
+      ["数据处理临时额度", "DEMO-20260809-004", "1.55", "1", "已付款", "2026-08-09 20:32:45"],
+      ["团队知识库周卡", "DEMO-20260809-005", "14.16", "1", "已付款", "2026-08-09 18:29:42"],
+      ["设计素材标准套餐", "DEMO-20260808-006", "18.00", "1", "已付款", "2026-08-08 16:25:54"],
+      ["API 调试工具月卡", "DEMO-20260807-007", "39.90", "1", "已付款", "2026-08-07 18:12:14"],
+      ["开发工具积分包 1000 点", "DEMO-20260807-008", "9.90", "2", "已退款", "2026-08-07 10:05:19"],
+      ["云端资源下载权益", "DEMO-20260806-009", "6.80", "1", "已付款", "2026-08-06 16:44:31"],
+      ["新用户体验套餐", "DEMO-20260806-010", "0.50", "1", "已付款", "2026-08-06 09:10:02"],
+      ["测试环境短期服务", "DEMO-20260805-011", "2.20", "1", "已付款", "2026-08-05 21:30:15"],
+      ["AI 写作资源周卡", "DEMO-20260805-012", "7.50", "1", "已付款", "2026-08-05 19:01:28"],
+      ["协作席位备用套餐", "DEMO-20260804-013", "15.80", "1", "待付款", "2026-08-04 17:27:08"],
+      ["图像生成积分包", "DEMO-20260804-014", "22.00", "1", "已付款", "2026-08-04 13:06:52"],
+      ["通知服务短期额度", "DEMO-20260803-015", "3.60", "1", "已付款", "2026-08-03 22:48:36"],
+      ["开发者资料合集", "DEMO-20260803-016", "5.00", "1", "已付款", "2026-08-03 14:18:09"],
+      ["企业版试用席位", "DEMO-20260802-017", "48.00", "1", "已关闭", "2026-08-02 12:11:54"],
+      ["多地区测试组合包", "DEMO-20260802-018", "8.80", "1", "已付款", "2026-08-02 09:44:22"],
+      ["云端文件临时空间", "DEMO-20260801-019", "4.50", "1", "已付款", "2026-08-01 20:17:33"],
+      ["高级提示词资料库", "DEMO-20260801-020", "19.90", "1", "已付款", "2026-08-01 11:09:40"],
+      ["自动化脚本模板包", "DEMO-20260731-021", "11.00", "1", "已付款", "2026-07-31 18:26:05"],
+      ["数字商品测试订单", "DEMO-20260731-022", "0.10", "1", "已退款", "2026-07-31 10:02:45"],
+      ["智能搜索月度权益", "DEMO-20260730-023", "26.60", "1", "已付款", "2026-07-30 08:55:17"]
+    ];
+    const pageSize = 10;
+    const totalPages = Math.ceil(demoOrders.length / pageSize);
+    let currentPage = 1;
+    const productLinks = Object.fromEntries(demoOrders.map((order, index) => [order[1], `https://pay.ldxp.cn/item/demo-goods-${String(index + 1).padStart(2, "0")}`]));
+
+    function publishProductLinks() {
+      document.dispatchEvent(new CustomEvent("ldxp:product-links", { detail: JSON.stringify(productLinks) }));
+    }
+
+    function renderDemoPage() {
+      const rows = demoOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+      document.querySelector("tbody").innerHTML = rows.map((order) => `
+        <tr class="arco-table-tr">
+          <td><div class="goods-name">${order[0]}</div><div class="create-time">${order[5]}</div></td>
+          <td><div class="goods-name">${order[1]}</div></td>
+          <td><span class="total_amount">￥${order[2]}</span><div class="quantity">共${order[3]}件</div></td>
+          <td><span class="arco-tag">${order[4]}</span></td>
+          <td>订单详情</td>
+        </tr>`).join("");
+      document.querySelector(".pagination").innerHTML = `
+        <span class="arco-pagination-item arco-pagination-item-previous ${currentPage === 1 ? "arco-pagination-item-disabled" : ""}">‹</span>
+        ${Array.from({ length: totalPages }, (_, index) => `<li class="arco-pagination-item ${currentPage === index + 1 ? "arco-pagination-item-active" : ""}" pages="${totalPages}">${index + 1}</li>`).join("")}
+        <span class="arco-pagination-item arco-pagination-item-next ${currentPage === totalPages ? "arco-pagination-item-disabled" : ""}">›</span>`;
+      publishProductLinks();
+    }
+
+    document.addEventListener("click", (event) => {
+      const item = event.target.closest(".arco-pagination-item");
+      if (!item || item.classList.contains("arco-pagination-item-disabled")) return;
+      let nextPage = Number(item.textContent);
+      if (item.classList.contains("arco-pagination-item-next")) nextPage = currentPage + 1;
+      if (item.classList.contains("arco-pagination-item-previous")) nextPage = currentPage - 1;
+      if (!Number.isFinite(nextPage) || nextPage === currentPage) return;
+      setTimeout(() => { currentPage = nextPage; renderDemoPage(); }, 140);
+    });
+    document.addEventListener("ldxp:request-product-links", publishProductLinks);
+    renderDemoPage();
+  </script>
+  <script src="src/core.js"></script>
+  <script src="src/content.js"></script>
+</body>
+</html>

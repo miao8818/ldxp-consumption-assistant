@@ -1,0 +1,20 @@
+{
+  "name": "ldxp-consumption-assistant",
+  "version": "1.2.0",
+  "private": true,
+  "description": "链动小铺订单消费统计浏览器插件",
+  "license": "MIT",
+  "author": "miao8818",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/miao8818/ldxp-consumption-assistant.git"
+  },
+  "homepage": "https://github.com/miao8818/ldxp-consumption-assistant#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test tests/core.test.js",
+    "check": "node --check src/core.js && node --check src/content.js && node --check src/page-bridge.js && node --check src/background.js"
+  }
+}
