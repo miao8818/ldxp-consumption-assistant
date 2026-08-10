@@ -1,10 +1,24 @@
 # 链动小铺消费助手（非官方）
 
+<p align="center">
+  <a href="https://linux.do" title="LINUX DO">
+    <img src="https://img.shields.io/badge/LINUX%20DO-community-FFB003.svg" alt="LINUX DO">
+  </a>
+</p>
+
 一个面向 `pay.ldxp.cn/order` 订单列表页的非官方浏览器扩展。项目永久免费，在用户完成站点原有订单查询后，生成每日消费统计、可筛选订单明细和 CSV 文件。
 
 > 本项目与链动小铺官方无隶属、授权或合作关系。“链动小铺”名称及相关标识归其权利人所有。
 
 ![消费助手演示界面](docs/preview.png)
+
+## 完整开源声明
+
+本项目采用 MIT License 完整开源，仓库包含浏览器扩展运行所需的全部源代码、样式、Manifest、图标源文件、测试、模拟页和开发文档，不存在未公开的闭源模块、后端服务或商业版本。任何人均可依据许可证审查、修改、构建和分发本项目。
+
+## 社区致谢
+
+本项目链接并认可 [LINUX DO](https://linux.do) 社区，感谢社区为开源项目交流与分享提供平台。该友链将作为项目开源说明的一部分长期保留；此致谢不代表 LINUX DO 对本项目提供官方背书。
 
 ## 交流群
 
