@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "链动小铺消费助手（非官方）",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "永久免费：在链动小铺订单列表中统计每日消费，并按关键字、金额、日期和状态筛选。",
   "author": "miao8818",
   "homepage_url": "https://github.com/miao8818/ldxp-consumption-assistant",
@@ -9,7 +9,8 @@
     "storage"
   ],
   "host_permissions": [
-    "https://pay.ldxp.cn/*"
+    "https://pay.ldxp.cn/*",
+    "https://www.ldxp.cn/*"
   ],
   "web_accessible_resources": [
     {
@@ -18,7 +19,8 @@
         "assets/qq-group.jpg"
       ],
       "matches": [
-        "https://pay.ldxp.cn/*"
+        "https://pay.ldxp.cn/*",
+        "https://www.ldxp.cn/item/*"
       ]
     }
   ],
@@ -43,7 +45,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://pay.ldxp.cn/*"
+        "https://pay.ldxp.cn/order*"
       ],
       "js": [
         "src/page-bridge.js"
@@ -53,7 +55,8 @@
     },
     {
       "matches": [
-        "https://pay.ldxp.cn/*"
+        "https://pay.ldxp.cn/order*",
+        "https://www.ldxp.cn/item/*"
       ],
       "js": [
         "src/core.js",

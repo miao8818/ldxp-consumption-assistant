@@ -44,7 +44,7 @@ QQ 群：**613550608**
 ## 兼容性
 
 - Chrome、Edge 以及其他支持 Manifest V3 的 Chromium 浏览器
-- 仅匹配 `https://pay.ldxp.cn/order*`
+- 订单统计匹配 `https://pay.ldxp.cn/order*`，购买页快捷填写匹配 `https://www.ldxp.cn/item/*`
 - 不处理验证码，也不会代替用户完成订单查询
 
 ## 安装
