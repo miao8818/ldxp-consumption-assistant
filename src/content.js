@@ -3,7 +3,8 @@
 
   const isDemo = document.documentElement.dataset.ldxpDemo === "true";
   const isOrderPage = ["pay.ldxp.cn", "www.ldxp.cn"].includes(location.hostname) && location.pathname.startsWith("/order");
-  const isPurchasePage = ["pay.ldxp.cn", "www.ldxp.cn"].includes(location.hostname) && /^\/item\//.test(location.pathname);
+  const isPurchasePage = ["pay.ldxp.cn", "www.ldxp.cn"].includes(location.hostname)
+    && (/^\/item\//.test(location.pathname) || /^\/shop\//.test(location.pathname));
   if ((!isOrderPage && !isPurchasePage && !isDemo) || document.getElementById("ldxp-consumption-assistant-root")) {
     return;
   }
@@ -195,7 +196,8 @@
     try {
       const url = new URL(value, location.origin);
       const expectedOrigins = isDemo ? ["https://pay.ldxp.cn", "https://www.ldxp.cn"] : [location.origin, "https://pay.ldxp.cn", "https://www.ldxp.cn"];
-      return expectedOrigins.includes(url.origin) && url.pathname.startsWith("/item/");
+      return expectedOrigins.includes(url.origin)
+        && (/^\/item\//.test(url.pathname) || /^\/shop\//.test(url.pathname));
     } catch {
       return false;
     }
