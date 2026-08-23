@@ -3,7 +3,8 @@
 
   const isDemo = document.documentElement.dataset.ldxpDemo === "true";
   const isOrderPage = location.hostname === "pay.ldxp.cn" && location.pathname.startsWith("/order");
-  if ((!isOrderPage && !isDemo) || document.getElementById("ldxp-consumption-assistant-root")) {
+  const isPurchasePage = location.hostname === "pay.ldxp.cn" && /^\/item\//.test(location.pathname);
+  if ((!isOrderPage && !isPurchasePage && !isDemo) || document.getElementById("ldxp-consumption-assistant-root")) {
     return;
   }
 
@@ -24,6 +25,7 @@
   const state = {
     orders: [],
     mode: isDemo ? "panel" : "orb",
+    isPurchasePage,
     view: "overview",
     sort: "newest",
     scanning: false,
@@ -44,9 +46,14 @@
       panel: null,
     },
     panelSize: null,
+    credentials: {
+      contact: "",
+      securityPassword: "",
+    },
   };
   let persistTimer = null;
   let toastTimer = null;
+  let orbClickTimer = null;
 
   await restoreState();
 
@@ -139,8 +146,14 @@
     if (savedSettings?.panelSize) {
       state.panelSize = savedSettings.panelSize;
     }
-    if (["orb", "panel", "hidden"].includes(savedSettings?.mode) && !isDemo) {
-      state.mode = savedSettings.mode;
+    if (savedSettings?.credentials) {
+      state.credentials = {
+        contact: String(savedSettings.credentials.contact || ""),
+        securityPassword: String(savedSettings.credentials.securityPassword || ""),
+      };
+    }
+    if (savedSettings?.mode === "hidden" && !isDemo) {
+      state.mode = "hidden";
     }
   }
 
@@ -223,6 +236,7 @@
       trend: '<path d="m3 17 6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
       list: '<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
       users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      lock: '<rect width="16" height="11" x="4" y="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
       chevron: '<path d="m9 18 6-6-6-6"/>',
       x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
     };
@@ -257,6 +271,7 @@
           </div>
           <div class="ldxp-menu" data-ref="menu" hidden>
             <button data-action="community">${icon("users", 16)} 交流群 · 613550608</button>
+            <button data-action="credentials">${icon("lock", 16)} 购买表单设置</button>
             <button data-action="export">${icon("download", 16)} 导出筛选结果</button>
             <button data-action="clear">${icon("trash", 16)} <span data-ref="clearLabel">清空本地数据</span></button>
             <button data-action="hide-all">${icon("eyeOff", 16)} 隐藏悬浮工具</button>
@@ -392,6 +407,26 @@
             </div>
           </section>
         </div>
+        <div class="ldxp-settings-backdrop" data-ref="credentialsDialog" hidden>
+          <section class="ldxp-settings-dialog" role="dialog" aria-modal="true" aria-labelledby="ldxp-settings-title">
+            <header class="ldxp-settings-header">
+              <div>
+                <h2 id="ldxp-settings-title">购买表单设置</h2>
+                <p>双击悬浮球时填入当前购买页，不会自动提交订单。</p>
+              </div>
+              <button class="ldxp-icon-button" data-action="credentials-close" aria-label="关闭购买表单设置" title="关闭">${icon("x", 18)}</button>
+            </header>
+            <div class="ldxp-settings-fields">
+              <label><span>联系方式</span><input data-ref="contactInput" type="tel" autocomplete="off" placeholder="请输入联系方式"></label>
+              <label><span>安全密码</span><input data-ref="passwordInput" type="password" autocomplete="new-password" placeholder="请输入安全密码"></label>
+            </div>
+            <p class="ldxp-settings-note">仅保存在本机扩展存储中。公开仓库不会包含你的联系方式或密码。</p>
+            <div class="ldxp-settings-actions">
+              <button class="ldxp-settings-secondary" data-action="credentials-close">取消</button>
+              <button class="ldxp-settings-primary" data-action="credentials-save">保存设置</button>
+            </div>
+          </section>
+        </div>
         <div class="ldxp-resize-grip" aria-hidden="true"></div>
       </section>
       <div class="ldxp-toast" data-ref="toast" role="status" aria-live="polite"></div>
@@ -426,6 +461,10 @@
     });
     attachDrag(refs.orbShell, refs.orbShell, "orb");
     attachDrag(shadow.querySelector("[data-drag-handle='panel']"), refs.panel, "panel");
+    refs.orbShell.addEventListener("dblclick", () => {
+      clearTimeout(orbClickTimer);
+      fillPurchaseFormOrConfigure();
+    });
     window.addEventListener("resize", () => {
       applyPanelSize();
       applyPositions();
@@ -435,6 +474,10 @@
         refs.communityDialog.hidden = true;
         return;
       }
+      if (event.key === "Escape" && !refs.credentialsDialog.hidden) {
+        refs.credentialsDialog.hidden = true;
+        return;
+      }
       if (event.key === "Escape" && state.mode === "panel") {
         setMode("orb");
       }
@@ -442,6 +485,11 @@
     refs.communityDialog.addEventListener("click", (event) => {
       if (event.target === refs.communityDialog) {
         refs.communityDialog.hidden = true;
+      }
+    });
+    refs.credentialsDialog.addEventListener("click", (event) => {
+      if (event.target === refs.credentialsDialog) {
+        refs.credentialsDialog.hidden = true;
       }
     });
   }
@@ -456,7 +504,11 @@
     }
     const action = actionElement.dataset.action;
     if (action === "open-panel" && Date.now() - state.lastDragAt > 250) {
-      setMode("panel");
+      clearTimeout(orbClickTimer);
+      orbClickTimer = setTimeout(() => {
+        anchorPanelToOrb();
+        setMode("panel");
+      }, 240);
     } else if (action === "minimize") {
       setMode("orb");
     } else if (action === "hide-all") {
@@ -469,6 +521,13 @@
       refs.communityDialog.hidden = false;
     } else if (action === "community-close") {
       refs.communityDialog.hidden = true;
+    } else if (action === "credentials") {
+      refs.menu.hidden = true;
+      openCredentialsDialog();
+    } else if (action === "credentials-close") {
+      refs.credentialsDialog.hidden = true;
+    } else if (action === "credentials-save") {
+      saveCredentials();
     } else if (action === "capture") {
       const added = captureCurrentPage({ notify: true });
       if (!added) {
@@ -568,6 +627,19 @@
     });
   }
 
+  function anchorPanelToOrb() {
+    const orbRect = refs.orbShell.getBoundingClientRect();
+    const panelWidth = refs.panel.offsetWidth || state.panelSize?.width || 428;
+    const panelHeight = refs.panel.offsetHeight || state.panelSize?.height || 760;
+    const gap = 12;
+    const preferRight = orbRect.right + gap + panelWidth <= window.innerWidth - 10;
+    const x = preferRight ? orbRect.right + gap : orbRect.left - gap - panelWidth;
+    const y = orbRect.top + orbRect.height / 2 - panelHeight / 2;
+    const point = clampPosition(refs.panel, x, y);
+    state.positions.panel = { x: Math.round(point.x), y: Math.round(point.y) };
+    applyPositions();
+  }
+
   function applyPanelSize() {
     if (!state.panelSize) {
       return;
@@ -629,7 +701,73 @@
       mode: state.mode,
       positions: state.positions,
       panelSize: state.panelSize,
+      credentials: state.credentials,
     });
+  }
+
+  function openCredentialsDialog() {
+    refs.contactInput.value = state.credentials.contact;
+    refs.passwordInput.value = state.credentials.securityPassword;
+    refs.credentialsDialog.hidden = false;
+    setTimeout(() => refs.contactInput.focus(), 0);
+  }
+
+  function saveCredentials() {
+    state.credentials = {
+      contact: refs.contactInput.value.trim(),
+      securityPassword: refs.passwordInput.value,
+    };
+    persistSettings();
+    refs.credentialsDialog.hidden = true;
+    showToast("购买表单设置已保存到本机");
+  }
+
+  function fillPurchaseFormOrConfigure() {
+    if (!state.credentials.contact || !state.credentials.securityPassword) {
+      openCredentialsDialog();
+      showToast("请先设置联系方式和安全密码");
+      return;
+    }
+    if (!state.isPurchasePage) {
+      showToast("请在商品购买页双击悬浮球");
+      return;
+    }
+    const contactInput = findPurchaseInput(["联系方式", "手机号", "手机号码", "联系邮箱", "请输入联系方式"]);
+    const passwordInput = findPurchaseInput(["安全密码", "密码", "请设置安全密码", "请输入安全密码"]);
+    let filled = 0;
+    if (contactInput) {
+      setNativeValue(contactInput, state.credentials.contact);
+      filled += 1;
+    }
+    if (passwordInput) {
+      setNativeValue(passwordInput, state.credentials.securityPassword);
+      filled += 1;
+    }
+    showToast(filled === 2 ? "联系方式和安全密码已填写" : "未找到完整购买表单，请确认页面已加载");
+  }
+
+  function findPurchaseInput(labels) {
+    const inputs = Array.from(document.querySelectorAll("input:not([type='hidden']), textarea"));
+    return inputs.find((input) => {
+      const haystack = [
+        input.getAttribute("placeholder"),
+        input.getAttribute("aria-label"),
+        input.getAttribute("name"),
+        input.getAttribute("id"),
+        input.closest(".arco-form-item, .form-item, label")?.textContent,
+      ].filter(Boolean).join(" ");
+      return labels.some((label) => haystack.includes(label));
+    }) || null;
+  }
+
+  function setNativeValue(element, value) {
+    const prototype = element instanceof HTMLTextAreaElement
+      ? HTMLTextAreaElement.prototype
+      : HTMLInputElement.prototype;
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
+    descriptor?.set?.call(element, value);
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+    element.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
   function persistOrders() {
