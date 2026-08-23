@@ -2,7 +2,7 @@
   "use strict";
 
   const isDemo = document.documentElement.dataset.ldxpDemo === "true";
-  const isOrderPage = location.hostname === "pay.ldxp.cn" && location.pathname.startsWith("/order");
+  const isOrderPage = ["pay.ldxp.cn", "www.ldxp.cn"].includes(location.hostname) && location.pathname.startsWith("/order");
   const isPurchasePage = ["pay.ldxp.cn", "www.ldxp.cn"].includes(location.hostname) && /^\/item\//.test(location.pathname);
   if ((!isOrderPage && !isPurchasePage && !isDemo) || document.getElementById("ldxp-consumption-assistant-root")) {
     return;

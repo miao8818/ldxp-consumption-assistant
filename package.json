@@ -1,6 +1,6 @@
 {
   "name": "ldxp-consumption-assistant",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "private": true,
   "description": "链动小铺订单消费统计浏览器插件",
   "license": "MIT",

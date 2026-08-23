@@ -2,6 +2,11 @@
 
 本项目遵循语义化版本号。
 
+## 1.3.4 - 2026-08-24
+
+- 修复 `www.ldxp.cn/order*` 订单列表页没有注入悬浮球的问题
+- `pay.ldxp.cn` 和 `www.ldxp.cn` 订单页均支持统计面板
+
 ## 1.3.3 - 2026-08-24
 
 - 修复部分 Chromium 浏览器拒绝加载扩展的 `web_accessible_resources` 匹配模式
