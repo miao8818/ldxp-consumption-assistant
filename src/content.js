@@ -461,7 +461,9 @@
     });
     attachDrag(refs.orbShell, refs.orbShell, "orb");
     attachDrag(shadow.querySelector("[data-drag-handle='panel']"), refs.panel, "panel");
-    refs.orbShell.addEventListener("dblclick", () => {
+    refs.orbShell.addEventListener("dblclick", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       clearTimeout(orbClickTimer);
       fillPurchaseFormOrConfigure();
     });
